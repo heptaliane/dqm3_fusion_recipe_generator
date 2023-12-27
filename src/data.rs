@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
@@ -10,22 +10,22 @@ const SEASON_JSON_STR: &str = include_str!("data/season.json");
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct AreaCondition {
-    conditions: HashMap<usize, Vec<bool>>,
+    pub conditions: HashMap<usize, Vec<bool>>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
-pub struct Parents {
-    monster: Option<usize>,
-    family: Option<usize>,
+pub struct Parent {
+    pub monster: Option<usize>,
+    pub family: Option<usize>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Monster {
-    name: String,
-    rank: usize,
-    family: usize,
-    parents: Vec<Vec<Parents>>,
-    habitats: HashMap<usize, AreaCondition>,
+    pub name: String,
+    pub rank: usize,
+    pub family: usize,
+    pub parents: Vec<Vec<Parent>>,
+    pub habitats: HashMap<usize, AreaCondition>,
 }
 
 fn parse_usize_string_json(json_str: &str) -> HashMap<usize, String> {
