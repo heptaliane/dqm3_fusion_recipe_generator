@@ -193,3 +193,55 @@ fn test_select_parents() {
     assert!(actual2f.is_some());
     assert_eq!(actual2f.unwrap().clone(), info3.clone());
 }
+
+#[test]
+fn test_validate_monster_rank() {
+    let monster = Monster {
+        name: "a".to_string(),
+        rank: 3,
+        family: 0,
+        parents: vec![],
+        habitats: HashMap::new(),
+    };
+    assert_eq!(validate_monster_rank(&monster, &[Some(0), Some(2)]), false);
+    assert_eq!(validate_monster_rank(&monster, &[Some(0), Some(3)]), true);
+    assert_eq!(validate_monster_rank(&monster, &[Some(0), Some(7)]), true);
+    assert_eq!(validate_monster_rank(&monster, &[Some(3), Some(7)]), true);
+    assert_eq!(validate_monster_rank(&monster, &[Some(4), Some(7)]), false);
+    assert_eq!(validate_monster_rank(&monster, &[None, Some(2)]), false);
+    assert_eq!(validate_monster_rank(&monster, &[None, Some(3)]), true);
+    assert_eq!(validate_monster_rank(&monster, &[None, Some(4)]), true);
+    assert_eq!(validate_monster_rank(&monster, &[Some(2), None]), true);
+    assert_eq!(validate_monster_rank(&monster, &[Some(3), None]), true);
+    assert_eq!(validate_monster_rank(&monster, &[Some(4), None]), false);
+    assert_eq!(validate_monster_rank(&monster, &[None, None]), true);
+}
+
+#[test]
+fn test_is_scoutable() {
+    let monster1 = Monster {
+        name: "a".to_string(),
+        rank: 0,
+        family: 0,
+        parents: vec![],
+        habitats: HashMap::new(),
+    };
+    assert_eq!(is_scoutable(&monster1), false);
+
+    use super::data::AreaCondition;
+    let monster2 = Monster {
+        name: "a".to_string(),
+        rank: 0,
+        family: 0,
+        parents: vec![],
+        habitats: vec![(
+            0,
+            AreaCondition {
+                conditions: vec![(0, vec![true, false])].into_iter().collect(),
+            },
+        )]
+        .into_iter()
+        .collect(),
+    };
+    assert_eq!(is_scoutable(&monster2), true);
+}
