@@ -194,7 +194,8 @@ impl MonsterTreeBuilder {
         loop {
             let inner_branches: Vec<Vec<Rc<RefCell<MonsterNode>>>> =
                 MutableMonsterBranchIterator::new(root.clone())
-                    .filter(|b| self.is_leaf_node(&b))
+                    .filter(|b| b.last().unwrap().borrow().children.len() == 0)
+                    .filter(|b| !self.is_leaf_node(&b))
                     .collect();
             for branch in inner_branches.iter() {
                 let monster_id = branch.last().unwrap().borrow().data.monster_id.unwrap();
