@@ -148,14 +148,38 @@ impl MonsterTreeBuilder {
         }
     }
 
-    fn is_leaf_node(&self, node: &Rc<RefCell<MonsterNode>>) -> bool {
-        match node.borrow().data.monster_id {
+    fn is_leaf_node(&self, branch: &Vec<Rc<RefCell<MonsterNode>>>) -> bool {
+        let target_node = branch.last().unwrap();
+
+        // No parents node is leaf
+        match target_node.borrow().data.monster_id {
             Some(monster_id) => {
                 let monster = &self.lut[&monster_id];
-                monster.parents.len() == 0
+                if monster.parents.len() == 0 {
+                    return true;
+                }
             }
-            None => true,
+            None => return true,
         }
+
+        // Cyclic branch is leaf
+        let monster_ids = branch
+            .iter()
+            .map(|n| n.borrow().data.monster_id.unwrap())
+            .collect::<HashSet<usize>>();
+        let monster = &self.lut[&target_node.borrow().data.monster_id.unwrap()];
+        let parent_ids = monster
+            .parents
+            .iter()
+            .flatten()
+            .filter(|p| p.monster.is_some())
+            .map(|p| p.monster.unwrap())
+            .collect::<HashSet<usize>>();
+        if !monster_ids.is_disjoint(&parent_ids) {
+            return true;
+        }
+
+        false
     }
 
     pub fn build(&self, monster_id: usize) -> MonsterNode {
@@ -167,15 +191,18 @@ impl MonsterTreeBuilder {
             children: vec![],
         }));
 
-        let mut stack = vec![root.clone()];
-        while stack.len() > 0 {
-            let cursor = std::mem::replace(&mut stack, Vec::new());
-            for node in cursor.into_iter() {
-                if self.is_leaf_node(&node) {
-                    let monster_id = node.borrow().data.monster_id.unwrap();
-                    node.try_borrow_mut().unwrap().children = self.get_child_nodes(monster_id);
-                    stack.extend(node.borrow().children.iter().map(|n| n.clone()));
-                }
+        loop {
+            let inner_branches: Vec<Vec<Rc<RefCell<MonsterNode>>>> =
+                MutableMonsterBranchIterator::new(root.clone())
+                    .filter(|b| self.is_leaf_node(&b))
+                    .collect();
+            for branch in inner_branches.iter() {
+                let monster_id = branch.last().unwrap().borrow().data.monster_id.unwrap();
+                branch.last().unwrap().try_borrow_mut().unwrap().children =
+                    self.get_child_nodes(monster_id);
+            }
+            if inner_branches.len() == 0 {
+                break;
             }
         }
 
@@ -193,25 +220,6 @@ fn validate_monster_rank(monster: &Monster, rank_range: &[Option<usize>; 2]) -> 
 
 fn is_scoutable(monster: &Monster) -> bool {
     monster.habitats.len() > 0
-}
-
-fn cut_infinite_loop(root: &mut MonsterNode) {
-    let mut cursor_nodes = vec![root];
-    let mut cursor_indices: Vec<usize> = vec![];
-
-    while cursor_nodes.len() > 0 {
-        let monster_ids: Vec<usize> = cursor_nodes
-            .iter()
-            .filter(|node| node.data.monster_id.is_some())
-            .map(|node| node.data.monster_id.unwrap())
-            .collect();
-        let unique_ids: HashSet<usize> = HashSet::from_iter(monster_ids.clone());
-        if monster_ids.len() > unique_ids.len() {
-            cursor_nodes.last_mut().unwrap().children.clear();
-        }
-
-        if cursor_nodes.last().unwrap().children.len() > 0 {}
-    }
 }
 
 #[test]
@@ -487,4 +495,121 @@ fn test_is_scoutable() {
         .collect(),
     };
     assert_eq!(is_scoutable(&monster2), true);
+}
+
+#[test]
+fn test_build_recipe() {
+    /*
+     * 0 +- 1 +- 2 +- 3
+     *   |    |    +- X
+     *   |    |
+     *   |    +- 3 +- 2
+     *   |         +- X
+     *   |
+     *   +- 2 +- 3
+     *        +- X
+     */
+    let lut: HashMap<usize, Monster> = HashMap::from([
+        (
+            0,
+            Monster {
+                name: "a".to_string(),
+                rank: 0,
+                family: 1,
+                parents: vec![vec![
+                    Parent {
+                        monster: Some(1),
+                        family: None,
+                    },
+                    Parent {
+                        monster: Some(2),
+                        family: None,
+                    },
+                ]],
+                habitats: HashMap::new(),
+            },
+        ),
+        (
+            1,
+            Monster {
+                name: "a".to_string(),
+                rank: 0,
+                family: 0,
+                parents: vec![vec![
+                    Parent {
+                        monster: Some(2),
+                        family: None,
+                    },
+                    Parent {
+                        monster: Some(3),
+                        family: None,
+                    },
+                ]],
+                habitats: HashMap::new(),
+            },
+        ),
+        (
+            2,
+            Monster {
+                name: "a".to_string(),
+                rank: 0,
+                family: 0,
+                parents: vec![vec![
+                    Parent {
+                        monster: Some(3),
+                        family: None,
+                    },
+                    Parent {
+                        monster: None,
+                        family: Some(0),
+                    },
+                ]],
+                habitats: HashMap::new(),
+            },
+        ),
+        (
+            3,
+            Monster {
+                name: "a".to_string(),
+                rank: 0,
+                family: 0,
+                parents: vec![vec![
+                    Parent {
+                        monster: Some(2),
+                        family: None,
+                    },
+                    Parent {
+                        monster: None,
+                        family: Some(0),
+                    },
+                ]],
+                habitats: HashMap::new(),
+            },
+        ),
+    ]);
+
+    let builder = MonsterTreeBuilder::new(lut);
+    let actual = builder.build(0);
+
+    let actual_ids = MutableMonsterBranchIterator::new(Rc::new(RefCell::new(actual)))
+        .map(|b| {
+            b.iter()
+                .map(|n| n.borrow().data.monster_id)
+                .collect::<Vec<Option<usize>>>()
+        })
+        .collect::<Vec<Vec<Option<usize>>>>();
+    let expected_ids = vec![
+        vec![Some(0)],
+        vec![Some(0), Some(1)],
+        vec![Some(0), Some(1), Some(2)],
+        vec![Some(0), Some(1), Some(2), Some(3)],
+        vec![Some(0), Some(1), Some(2), None],
+        vec![Some(0), Some(1), Some(3)],
+        vec![Some(0), Some(1), Some(3), Some(2)],
+        vec![Some(0), Some(1), Some(3), None],
+        vec![Some(0), Some(2)],
+        vec![Some(0), Some(2), Some(3)],
+        vec![Some(0), Some(2), None],
+    ];
+    assert_eq!(actual_ids, expected_ids);
 }
