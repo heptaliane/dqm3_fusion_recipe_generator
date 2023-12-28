@@ -22,7 +22,62 @@ pub struct MonsterNode {
     children: Vec<Rc<RefCell<MonsterNode>>>,
 }
 
-struct MonsterTreeBuilder {
+struct MutableMonsterBranchIterator {
+    root: Rc<RefCell<MonsterNode>>,
+    indices: Vec<usize>,
+    stop: bool,
+}
+
+impl MutableMonsterBranchIterator {
+    fn new(root: Rc<RefCell<MonsterNode>>) -> Self {
+        Self {
+            root: root,
+            indices: vec![],
+            stop: false,
+        }
+    }
+
+    fn get_branch(&self) -> Vec<Rc<RefCell<MonsterNode>>> {
+        let mut branch = vec![self.root.clone()];
+        let mut cursor = self.root.clone();
+        for &index in self.indices.iter() {
+            branch.push(cursor.borrow().children[index].clone());
+            cursor = branch.last().unwrap().clone();
+        }
+
+        branch
+    }
+}
+
+impl Iterator for MutableMonsterBranchIterator {
+    type Item = Vec<Rc<RefCell<MonsterNode>>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.stop {
+            return None;
+        }
+
+        let branch = self.get_branch();
+
+        // Next index
+        if branch.last().unwrap().borrow().children.len() > 0 {
+            self.indices.push(0);
+            return Some(branch);
+        }
+
+        while let Some(index) = self.indices.pop() {
+            let cursor = self.indices.len();
+            if branch[cursor].borrow().children.len() > index + 1 {
+                self.indices.push(index + 1);
+                return Some(branch);
+            }
+        }
+        self.stop = true;
+        Some(branch)
+    }
+}
+
+pub struct MonsterTreeBuilder {
     lut: HashMap<usize, Monster>,
     prefer_standard: bool,
 }
@@ -138,6 +193,125 @@ fn validate_monster_rank(monster: &Monster, rank_range: &[Option<usize>; 2]) -> 
 
 fn is_scoutable(monster: &Monster) -> bool {
     monster.habitats.len() > 0
+}
+
+fn cut_infinite_loop(root: &mut MonsterNode) {
+    let mut cursor_nodes = vec![root];
+    let mut cursor_indices: Vec<usize> = vec![];
+
+    while cursor_nodes.len() > 0 {
+        let monster_ids: Vec<usize> = cursor_nodes
+            .iter()
+            .filter(|node| node.data.monster_id.is_some())
+            .map(|node| node.data.monster_id.unwrap())
+            .collect();
+        let unique_ids: HashSet<usize> = HashSet::from_iter(monster_ids.clone());
+        if monster_ids.len() > unique_ids.len() {
+            cursor_nodes.last_mut().unwrap().children.clear();
+        }
+
+        if cursor_nodes.last().unwrap().children.len() > 0 {}
+    }
+}
+
+#[test]
+fn test_mutable_monster_branch_iterator() {
+    /*
+     * 6 +- 4 +- 0
+     *   |    +- 1
+     *   |
+     *   +- 5 +- 2
+     *        +- 3
+     */
+    let leaves1 = [
+        MonsterNode {
+            data: MonsterInfo {
+                spec: None,
+                monster_id: Some(0),
+            },
+            children: vec![],
+        },
+        MonsterNode {
+            data: MonsterInfo {
+                spec: None,
+                monster_id: Some(1),
+            },
+            children: vec![],
+        },
+    ];
+    let leaves2 = [
+        MonsterNode {
+            data: MonsterInfo {
+                spec: None,
+                monster_id: Some(2),
+            },
+            children: vec![],
+        },
+        MonsterNode {
+            data: MonsterInfo {
+                spec: None,
+                monster_id: Some(3),
+            },
+            children: vec![],
+        },
+    ];
+    let middle_nodes = [
+        MonsterNode {
+            data: MonsterInfo {
+                spec: None,
+                monster_id: Some(4),
+            },
+            children: leaves1
+                .iter()
+                .map(|n| Rc::new(RefCell::new(n.clone())))
+                .collect(),
+        },
+        MonsterNode {
+            data: MonsterInfo {
+                spec: None,
+                monster_id: Some(5),
+            },
+            children: leaves2
+                .iter()
+                .map(|n| Rc::new(RefCell::new(n.clone())))
+                .collect(),
+        },
+    ];
+    let root = MonsterNode {
+        data: MonsterInfo {
+            spec: None,
+            monster_id: Some(6),
+        },
+        children: middle_nodes
+            .iter()
+            .map(|n| Rc::new(RefCell::new(n.clone())))
+            .collect(),
+    };
+
+    let mut itr = MutableMonsterBranchIterator::new(Rc::new(RefCell::new(root)));
+
+    let expected_ids: Vec<Vec<usize>> = vec![
+        vec![6],
+        vec![6, 4],
+        vec![6, 4, 0],
+        vec![6, 4, 1],
+        vec![6, 5],
+        vec![6, 5, 2],
+        vec![6, 5, 3],
+    ];
+
+    for expected in expected_ids {
+        let branch = itr.next();
+        assert!(branch.is_some());
+
+        let actual = branch
+            .unwrap()
+            .iter()
+            .map(|n| n.borrow().data.monster_id.unwrap())
+            .collect::<Vec<usize>>();
+        assert_eq!(actual, expected);
+    }
+    assert!(itr.next().is_none());
 }
 
 #[test]
