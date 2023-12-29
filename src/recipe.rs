@@ -6,20 +6,20 @@ use std::rc::Rc;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterSpec {
-    family: usize,
-    rank: usize,
+    pub family: usize,
+    pub rank: usize,
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterInfo {
-    spec: Option<MonsterSpec>,
-    monster_id: Option<usize>,
+    pub spec: Option<MonsterSpec>,
+    pub monster_id: Option<usize>,
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterNode {
-    data: MonsterInfo,
-    children: Vec<Rc<RefCell<MonsterNode>>>,
+    pub data: MonsterInfo,
+    pub children: Vec<Rc<RefCell<MonsterNode>>>,
 }
 
 struct MutableMonsterBranchIterator {
@@ -83,7 +83,7 @@ pub struct MonsterTreeBuilder {
 }
 
 impl MonsterTreeBuilder {
-    fn new(monster_lut: HashMap<usize, Monster>) -> Self {
+    pub fn new(monster_lut: HashMap<usize, Monster>) -> Self {
         Self {
             lut: monster_lut,
             prefer_standard: false,

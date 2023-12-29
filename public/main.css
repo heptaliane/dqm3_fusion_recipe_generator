@@ -1,0 +1,65 @@
+.color-slime {
+    background-color: #1E90FF!important; /* dodger blue */
+    color: #FFF!important;
+}
+
+.color-dragon {
+    background-color: #FF00FF!important; /* magenta */
+    color: #FFF!important;
+}
+
+.color-nature {
+    background-color: #32CD32!important; /* lime green */
+    color: #FFF!important;
+}
+
+.color-beast {
+    background-color: #8B4513!important; /* saddle brown */
+    color: #FFF!important;
+}
+
+.color-elemental {
+    background-color: #708090!important; /* slate gray */
+    color: #FFF!important;
+}
+
+.color-demon {
+    background-color: #9400D3!important; /* dark violet */
+    color: #FFF!important;
+}
+
+.color-undead {
+    background-color: #000000!important; /* black */
+    color: #FFF!important;
+}
+
+.color-unknown {
+    background-color: #DAA520!important; /* golden rod */
+    color: #FFF!important;
+}
+
+.grid-container {
+    display: grid;
+}
+
+.arrow-inner-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 10%;
+}
+
+.arrow-border-bottom {
+    border-bottom: solid;
+}
+
+.arrow-border-top {
+    border-top: solid;
+}
+
+.arrow-border-left {
+    border-left: solid;
+}
+
+.arrow-border-right {
+    border-right: solid;
+}
