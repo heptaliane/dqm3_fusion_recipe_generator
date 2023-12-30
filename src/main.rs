@@ -18,12 +18,10 @@ fn App() -> Html {
     let tree = builder.build(522);
 
     html! {
-        <div class="monster-tree-container">
-            <components::monster_tree::MonsterTree
-                monster_lut={Rc::new(monster_lut.clone())}
-                monster={Rc::new(RefCell::new(tree))}
-            />
-        </div>
+        <components::monster_tree_view::MonsterTreeView
+            monster_lut={Rc::new(monster_lut.clone())}
+            monster={Rc::new(RefCell::new(tree))}
+        />
     }
 }
 

@@ -54,28 +54,11 @@
     overflow: scroll;
 }
 
+.monster-node-text {
+  position: sticky;
+  left: 10px;
+}
+
 .grid-container {
     display: grid;
-}
-
-.arrow-inner-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    width: 10%;
-}
-
-.arrow-border-bottom {
-    border-bottom: solid;
-}
-
-.arrow-border-top {
-    border-top: solid;
-}
-
-.arrow-border-left {
-    border-left: solid;
-}
-
-.arrow-border-right {
-    border-right: solid;
 }

@@ -18,21 +18,23 @@ pub struct MonsterTreeNodeProps {
 pub fn monster_tree_node(props: &MonsterTreeNodeProps) -> Html {
     html! {
         <Card variant="color-dark monster-node">
-            {
-                match props.monster.clone() {
-                    Some(name) => html!{name},
-                    _ => html!{},
-                }
-            }
-            {
-                match props.family.clone() {
-                    Some(family) => match get_family_data().get(&family) {
-                        Some(name) => html!{format!("{:} 系", name)},
+            <span class="monster-node-text">
+                {
+                    match props.monster.clone() {
+                        Some(name) => html!{name},
                         _ => html!{},
-                    },
-                    _ => html!{},
+                    }
                 }
-            }
+                {
+                    match props.family.clone() {
+                        Some(family) => match get_family_data().get(&family) {
+                            Some(name) => html!{format!("{:} 系", name)},
+                            _ => html!{},
+                        },
+                        _ => html!{},
+                    }
+                }
+            </span>
         </Card>
     }
 }
