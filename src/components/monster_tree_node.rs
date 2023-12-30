@@ -17,24 +17,22 @@ pub struct MonsterTreeNodeProps {
 #[function_component(MonsterTreeNode)]
 pub fn monster_tree_node(props: &MonsterTreeNodeProps) -> Html {
     html! {
-        <Card variant="color-dark">
-            <span>
-                {
-                    match props.monster.clone() {
-                        Some(name) => html!{name},
-                        _ => html!{},
-                    }
+        <Card variant="color-dark monster-node">
+            {
+                match props.monster.clone() {
+                    Some(name) => html!{name},
+                    _ => html!{},
                 }
-                {
-                    match props.family.clone() {
-                        Some(family) => match get_family_data().get(&family) {
-                            Some(name) => html!{format!("{:} 系", name)},
-                            _ => html!{},
-                        },
+            }
+            {
+                match props.family.clone() {
+                    Some(family) => match get_family_data().get(&family) {
+                        Some(name) => html!{format!("{:} 系", name)},
                         _ => html!{},
-                    }
+                    },
+                    _ => html!{},
                 }
-            </span>
+            }
         </Card>
     }
 }

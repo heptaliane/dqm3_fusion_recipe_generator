@@ -6,7 +6,6 @@ use yew::Properties;
 
 use super::super::data::Monster;
 use super::super::recipe::MonsterNode;
-use super::monster_tree_arrow::MonsterTreeArrow;
 use super::monster_tree_node::MonsterTreeNode;
 
 #[derive(Properties, PartialEq)]
@@ -31,39 +30,25 @@ pub fn monster_tree(props: &MonsterTreeProps) -> Html {
     let children = props.monster.borrow().children.clone();
 
     html! {
-        <div class="grid-container">
+        <div>
             <MonsterTreeNode
                 monster={monster}
                 family={family}
             />
-            {
-                match children.len() > 0 {
-                    true => html! {
-                        <MonsterTreeArrow right={children.len()} />
-                    },
-                    false => html!{},
-                }
-            }
+            <div class="monster-nodes-container">
             {
                 children.iter().map(|m| {
                     html! {
-                        <MonsterTree
-                            monster_lut={props.monster_lut.clone()}
-                            monster={m.clone()}
-                        />
+                        <div class="monster-node-container">
+                            <MonsterTree
+                                monster_lut={props.monster_lut.clone()}
+                                monster={m.clone()}
+                            />
+                        </div>
                     }
                 }).collect::<Html>()
             }
-            {
-                match children.iter().filter(|n| {
-                    n.borrow().data.monster_id.is_none()
-                }).collect::<Vec<&Rc<RefCell<MonsterNode>>>>().len() > 0 {
-                    true => html! {
-                        <MonsterTreeArrow left={children.len()} />
-                    },
-                    false => html!{},
-                }
-            }
+            </div>
         </div>
     }
 }

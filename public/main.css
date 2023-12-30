@@ -38,6 +38,22 @@
     color: #FFF!important;
 }
 
+.monster-node {
+    min-width: fit-content;
+}
+
+.monster-node-container {
+    float: left;
+}
+
+.monster-nodes-container {
+    width: max-content;
+}
+
+.monster-tree-container {
+    overflow: scroll;
+}
+
 .grid-container {
     display: grid;
 }
