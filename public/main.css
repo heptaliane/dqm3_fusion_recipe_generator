@@ -52,11 +52,12 @@
 
 .monster-tree-container {
     overflow: scroll;
+    height: 80vh;
 }
 
 .monster-node-text {
-  position: sticky;
-  left: 10px;
+    position: sticky;
+    left: 10px;
 }
 
 .grid-container {

@@ -30,7 +30,7 @@ pub fn monster_tree(props: &MonsterTreeProps) -> Html {
     let children = props.monster.borrow().children.clone();
 
     html! {
-        <div style="width: fit-content;">
+        <div>
             <MonsterTreeNode
                 monster={monster}
                 family={family}
