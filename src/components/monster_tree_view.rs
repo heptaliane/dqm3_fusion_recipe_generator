@@ -23,17 +23,19 @@ pub fn monster_tree_view(props: &MonsterTreeViewProps) -> Html {
     html! {
         <Card header={get_lang_data()["monster_tree"].ja.clone()}>
             <div class="monster-tree-container">
-            {
-                match props.monster.clone() {
-                    Some(monster) => html! {
-                        <MonsterTree
-                            monster={monster}
-                            monster_lut={props.monster_lut.clone()}
-                        />
-                    },
-                    None => html! {},
+                <div class="monster-nodes-container">
+                {
+                    match props.monster.clone() {
+                        Some(monster) => html! {
+                            <MonsterTree
+                                monster={monster}
+                                monster_lut={props.monster_lut.clone()}
+                            />
+                        },
+                        None => html! {},
+                    }
                 }
-            }
+                </div>
             </div>
         </Card>
     }
