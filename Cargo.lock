@@ -97,14 +97,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "dqm3_fusion_manager"
+name = "dqm3_fusion_recipe_manager"
 version = "0.1.0"
 dependencies = [
  "js-sys",
+ "log",
  "serde",
  "serde_json",
  "wasm-bindgen",
  "wasm-logger",
+ "web-sys",
  "yew",
 ]
 

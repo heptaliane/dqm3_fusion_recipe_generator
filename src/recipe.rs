@@ -1,4 +1,4 @@
-use super::data::{Monster, Parent};
+use super::data::{Monster};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
@@ -6,21 +6,23 @@ use std::rc::Rc;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterSpec {
-    family: usize,
-    rank: usize,
+    pub family: usize,
+    pub rank: usize,
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterInfo {
-    spec: Option<MonsterSpec>,
-    monster_id: Option<usize>,
+    pub spec: Option<MonsterSpec>,
+    pub monster_id: Option<usize>,
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterNode {
-    data: MonsterInfo,
-    children: Vec<Rc<RefCell<MonsterNode>>>,
+    pub data: MonsterInfo,
+    pub children: Vec<Rc<RefCell<MonsterNode>>>,
 }
+
+type MonsterBranch = Vec<Rc<RefCell<MonsterNode>>>;
 
 struct MutableMonsterBranchIterator {
     root: Rc<RefCell<MonsterNode>>,
@@ -31,13 +33,13 @@ struct MutableMonsterBranchIterator {
 impl MutableMonsterBranchIterator {
     fn new(root: Rc<RefCell<MonsterNode>>) -> Self {
         Self {
-            root: root,
+            root,
             indices: vec![],
             stop: false,
         }
     }
 
-    fn get_branch(&self) -> Vec<Rc<RefCell<MonsterNode>>> {
+    fn get_branch(&self) -> MonsterBranch {
         let mut branch = vec![self.root.clone()];
         let mut cursor = self.root.clone();
         for &index in self.indices.iter() {
@@ -83,14 +85,14 @@ pub struct MonsterTreeBuilder {
 }
 
 impl MonsterTreeBuilder {
-    fn new(monster_lut: HashMap<usize, Monster>) -> Self {
+    pub fn new(monster_lut: HashMap<usize, Monster>) -> Self {
         Self {
             lut: monster_lut,
             prefer_standard: false,
         }
     }
 
-    fn prefer_standard_fusion(&mut self, prefer_standard: bool) {
+    pub fn prefer_standard_fusion(&mut self, prefer_standard: bool) {
         self.prefer_standard = prefer_standard;
     }
 
@@ -116,7 +118,30 @@ impl MonsterTreeBuilder {
             .collect()
     }
 
-    fn select_parents(&self, parents_list: Vec<Vec<MonsterInfo>>) -> Option<Vec<MonsterInfo>> {
+    fn is_cyclic_parent(&self, parent_id: usize, branch: &MonsterBranch) -> bool {
+        let monster_ids = branch
+            .iter()
+            .map(|n| n.borrow().data.monster_id.unwrap())
+            .collect::<HashSet<usize>>();
+        monster_ids.contains(&parent_id)
+    }
+
+    fn select_parents(
+        &self,
+        parents_list: Vec<Vec<MonsterInfo>>,
+        branch: &MonsterBranch,
+    ) -> Option<Vec<MonsterInfo>> {
+        // Exclude cyclic branch
+        let filtered_parents: Vec<Vec<MonsterInfo>> = parents_list
+            .into_iter()
+            .filter(|ps| {
+                ps.iter().fold(true, |acc, p| match p.monster_id {
+                    Some(id) if self.is_cyclic_parent(id, branch) => false,
+                    _ => acc,
+                })
+            })
+            .collect();
+
         let count_standard_parents = |parents: &Vec<MonsterInfo>| {
             parents
                 .iter()
@@ -126,14 +151,19 @@ impl MonsterTreeBuilder {
         };
 
         match self.prefer_standard {
-            true => parents_list.into_iter().max_by_key(count_standard_parents),
-            false => parents_list.into_iter().min_by_key(count_standard_parents),
+            true => filtered_parents
+                .into_iter()
+                .max_by_key(count_standard_parents),
+            false => filtered_parents
+                .into_iter()
+                .min_by_key(count_standard_parents),
         }
     }
 
-    fn get_child_nodes(&self, monster_id: usize) -> Vec<Rc<RefCell<MonsterNode>>> {
+    fn get_child_nodes(&self, branch: &MonsterBranch) -> Vec<Rc<RefCell<MonsterNode>>> {
+        let monster_id = branch.last().unwrap().borrow().data.monster_id.unwrap();
         let parents_list = self.get_parents_info(monster_id);
-        let parents = self.select_parents(parents_list);
+        let parents = self.select_parents(parents_list, branch);
         match parents {
             Some(ps) => ps
                 .iter()
@@ -162,23 +192,6 @@ impl MonsterTreeBuilder {
             None => return true,
         }
 
-        // Cyclic branch is leaf
-        let monster_ids = branch
-            .iter()
-            .map(|n| n.borrow().data.monster_id.unwrap())
-            .collect::<HashSet<usize>>();
-        let monster = &self.lut[&target_node.borrow().data.monster_id.unwrap()];
-        let parent_ids = monster
-            .parents
-            .iter()
-            .flatten()
-            .filter(|p| p.monster.is_some())
-            .map(|p| p.monster.unwrap())
-            .collect::<HashSet<usize>>();
-        if !monster_ids.is_disjoint(&parent_ids) {
-            return true;
-        }
-
         false
     }
 
@@ -192,15 +205,14 @@ impl MonsterTreeBuilder {
         }));
 
         loop {
-            let inner_branches: Vec<Vec<Rc<RefCell<MonsterNode>>>> =
+            let inner_branches: Vec<MonsterBranch> =
                 MutableMonsterBranchIterator::new(root.clone())
                     .filter(|b| b.last().unwrap().borrow().children.len() == 0)
                     .filter(|b| !self.is_leaf_node(&b))
                     .collect();
             for branch in inner_branches.iter() {
-                let monster_id = branch.last().unwrap().borrow().data.monster_id.unwrap();
                 branch.last().unwrap().try_borrow_mut().unwrap().children =
-                    self.get_child_nodes(monster_id);
+                    self.get_child_nodes(&branch);
             }
             if inner_branches.len() == 0 {
                 break;
@@ -431,17 +443,28 @@ fn test_select_parents() {
 
     let parents1: Vec<Vec<MonsterInfo>> = vec![];
     let parents2 = vec![info1.clone(), info2.clone(), info3.clone()];
+    let branch = vec![
+        Rc::new(RefCell::new(
+            MonsterNode {
+                data: MonsterInfo {
+                    spec: None,
+                    monster_id: Some(6),
+                },
+                children: vec![],
+            }
+        ))
+    ];
 
-    let actual1f = builder.select_parents(parents1.clone());
+    let actual1f = builder.select_parents(parents1.clone(), &branch);
     assert_eq!(actual1f, None);
-    let actual2f = builder.select_parents(parents2.clone());
+    let actual2f = builder.select_parents(parents2.clone(), &branch);
     assert!(actual2f.is_some());
     assert_eq!(actual2f.unwrap().clone(), info3.clone());
 
     builder.prefer_standard_fusion(true);
-    let actual1t = builder.select_parents(parents1.clone());
+    let actual1t = builder.select_parents(parents1.clone(), &branch);
     assert_eq!(actual1t, None);
-    let actual2t = builder.select_parents(parents2.clone());
+    let actual2t = builder.select_parents(parents2.clone(), &branch);
     assert!(actual2t.is_some());
     assert_eq!(actual2t.unwrap().clone(), info1.clone());
 }
@@ -500,6 +523,7 @@ fn test_is_scoutable() {
 
 #[test]
 fn test_build_recipe() {
+    use super::data::Parent;
     /*
      * 0 +- 1 +- 2 +- 3
      *   |    |    +- X

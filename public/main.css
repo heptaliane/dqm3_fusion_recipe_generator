@@ -1,0 +1,65 @@
+.color-slime {
+    background-color: #1E90FF!important; /* dodger blue */
+    color: #FFF!important;
+}
+
+.color-dragon {
+    background-color: #FF00FF!important; /* magenta */
+    color: #FFF!important;
+}
+
+.color-nature {
+    background-color: #32CD32!important; /* lime green */
+    color: #FFF!important;
+}
+
+.color-beast {
+    background-color: #8B4513!important; /* saddle brown */
+    color: #FFF!important;
+}
+
+.color-elemental {
+    background-color: #708090!important; /* slate gray */
+    color: #FFF!important;
+}
+
+.color-demon {
+    background-color: #9400D3!important; /* dark violet */
+    color: #FFF!important;
+}
+
+.color-undead {
+    background-color: #000000!important; /* black */
+    color: #FFF!important;
+}
+
+.color-unknown {
+    background-color: #DAA520!important; /* golden rod */
+    color: #FFF!important;
+}
+
+.monster-node {
+    min-width: fit-content;
+}
+
+.monster-node-container {
+    float: left;
+}
+
+.monster-nodes-container {
+    width: max-content;
+}
+
+.monster-tree-container {
+    overflow: scroll;
+    height: 80vh;
+}
+
+.monster-node-text {
+    position: sticky;
+    left: 10px;
+}
+
+.grid-container {
+    display: grid;
+}
