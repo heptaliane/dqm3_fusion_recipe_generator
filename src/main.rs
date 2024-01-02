@@ -48,9 +48,10 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let tree = self
-            .tree_builder
-            .build(self.search_condition.monster_id.unwrap_or(1));
+        let tree = match self.search_condition.monster_id {
+            Some(id) => Some(Rc::new(RefCell::new(self.tree_builder.build(id)))),
+            None => None,
+        };
 
         html! {
             <div class="container">
@@ -63,7 +64,7 @@ impl Component for App {
                 />
                 <components::monster_tree_view::MonsterTreeView
                     monster_lut={self.monster_lut.clone()}
-                    monster={Rc::new(RefCell::new(tree))}
+                    monster={tree}
                 />
             </div>
         }
