@@ -35,7 +35,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
-          targets: wasm32-unknown-uknown
+          targets: wasm32-unknown-unknown
       - name: Install trunk
         run: cargo install trunk
       - name: Build yew app
