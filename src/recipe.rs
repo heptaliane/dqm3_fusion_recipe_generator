@@ -1,4 +1,4 @@
-use super::data::{Monster};
+use super::data::Monster;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
@@ -180,16 +180,28 @@ impl MonsterTreeBuilder {
 
     fn is_leaf_node(&self, branch: &Vec<Rc<RefCell<MonsterNode>>>) -> bool {
         let target_node = branch.last().unwrap();
+        let target = match target_node.borrow().data.monster_id {
+            Some(monster_id) => Some(&self.lut[&monster_id]),
+            None => None,
+        };
 
         // No parents node is leaf
-        match target_node.borrow().data.monster_id {
-            Some(monster_id) => {
-                let monster = &self.lut[&monster_id];
-                if monster.parents.len() == 0 {
-                    return true;
-                }
-            }
+        match target {
+            Some(monster) if monster.parents.len() == 0 => return true,
             None => return true,
+            _ => (),
+        }
+
+        let is_cyclic_parent = target.unwrap().parents.iter().fold(true, |acc, ps| {
+            acc && ps.iter().fold(false, |acc, p| {
+                acc || match p.monster {
+                    Some(id) => self.is_cyclic_parent(id, branch),
+                    None => false,
+                }
+            })
+        });
+        if is_cyclic_parent {
+            return true;
         }
 
         false
@@ -443,17 +455,13 @@ fn test_select_parents() {
 
     let parents1: Vec<Vec<MonsterInfo>> = vec![];
     let parents2 = vec![info1.clone(), info2.clone(), info3.clone()];
-    let branch = vec![
-        Rc::new(RefCell::new(
-            MonsterNode {
-                data: MonsterInfo {
-                    spec: None,
-                    monster_id: Some(6),
-                },
-                children: vec![],
-            }
-        ))
-    ];
+    let branch = vec![Rc::new(RefCell::new(MonsterNode {
+        data: MonsterInfo {
+            spec: None,
+            monster_id: Some(6),
+        },
+        children: vec![],
+    }))];
 
     let actual1f = builder.select_parents(parents1.clone(), &branch);
     assert_eq!(actual1f, None);
