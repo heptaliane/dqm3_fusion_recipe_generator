@@ -6,5 +6,13 @@
   "family_suffix": {
     "ja": "系",
     "en": ""
+  },
+  "monster_name_input": {
+    "ja": "モンスター名",
+    "en": "Monster name"
+  },
+  "controller_header": {
+    "ja": "融合素材検索",
+    "en": "Search parents"
   }
 }
