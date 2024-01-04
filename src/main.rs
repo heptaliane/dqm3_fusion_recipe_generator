@@ -64,7 +64,11 @@ impl Component for App {
                 />
                 <components::monster_tree_view::MonsterTreeView
                     monster_lut={self.monster_lut.clone()}
-                    monster={tree}
+                    monster={tree.clone()}
+                />
+                <components::monster_list_view::MonsterListView
+                    monster_lut={self.monster_lut.clone()}
+                    monster={tree.clone()}
                 />
             </div>
         }
