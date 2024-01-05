@@ -21,25 +21,29 @@ pub struct ControllerViewProps {
 #[function_component(ControllerView)]
 pub fn controller_view(props: &ControllerViewProps) -> Html {
     let lang = get_lang_data();
-    let id_condition = props.condition.clone();
-    let handle_id_change = props.onchange.clone();
+    let handle_id_change = {
+        let onchange = props.onchange.clone();
+        let condition = props.condition.clone();
+        Callback::from(move |id: Option<usize>| {
+            onchange.emit(condition.with_monster_id(id));
+        })
+    };
+    let handle_scoutable_rank_change = {
+        let onchange = props.onchange.clone();
+        let condition = props.condition.clone();
+        Callback::from(move |rank: Option<usize>| {
+            onchange.emit(condition.with_scoutable_limit_rank(rank));
+        })
+    };
 
     html! {
         <Card header={lang["controller_header"].ja.clone()}>
             <MonsterInput
                 monster_lut={props.monster_lut.clone()}
-                onchange={
-                    Callback::from(move |id: Option<usize>| {
-                        handle_id_change.emit(id_condition.with_monster_id(id));
-                    })
-                }
+                onchange={handle_id_change}
             />
             <MonsterScoutableSelection
-                onchange={
-                    Callback::from(move |rank: Option<usize>| {
-                        log::info!("{:?}", rank);
-                    })
-                }
+                onchange={handle_scoutable_rank_change}
             />
         </Card>
     }

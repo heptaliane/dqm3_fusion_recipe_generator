@@ -7,16 +7,26 @@ use std::rc::Rc;
 #[derive(Clone, PartialEq)]
 pub struct SearchCondition {
     pub monster_id: Option<usize>,
+    pub scoutable_limit_rank: Option<usize>,
 }
 
 impl SearchCondition {
     pub fn new() -> Self {
-        Self { monster_id: None }
+        Self {
+            monster_id: None,
+            scoutable_limit_rank: None,
+        }
     }
 
     pub fn with_monster_id(&self, monster_id: Option<usize>) -> Self {
         let mut cond = self.clone();
         cond.monster_id = monster_id;
+        cond
+    }
+
+    pub fn with_scoutable_limit_rank(&self, rank: Option<usize>) -> Self {
+        let mut cond = self.clone();
+        cond.scoutable_limit_rank = rank;
         cond
     }
 }
