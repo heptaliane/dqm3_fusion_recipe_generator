@@ -8,6 +8,7 @@ use super::super::data::{get_lang_data, Monster};
 use super::super::recipe::SearchCondition;
 use super::cards::Card;
 use super::monster_input::MonsterInput;
+use super::monster_scoutable_selection::MonsterScoutableSelection;
 
 #[derive(Properties, PartialEq)]
 pub struct ControllerViewProps {
@@ -30,6 +31,13 @@ pub fn controller_view(props: &ControllerViewProps) -> Html {
                 onchange={
                     Callback::from(move |id: Option<usize>| {
                         handle_id_change.emit(id_condition.with_monster_id(id));
+                    })
+                }
+            />
+            <MonsterScoutableSelection
+                onchange={
+                    Callback::from(move |rank: Option<usize>| {
+                        log::info!("{:?}", rank);
                     })
                 }
             />

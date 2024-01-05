@@ -1,6 +1,6 @@
 {
   "monster_tree": {
-    "ja": "モンスター融合ツリー",
+    "ja": "モンスター配合ツリー",
     "en": "Monster fusion tree"
   },
   "family_suffix": {
@@ -12,7 +12,15 @@
     "en": "Monster name"
   },
   "controller_header": {
-    "ja": "融合素材検索",
+    "ja": "配合素材検索",
     "en": "Search parents"
+  },
+  "scoutable_title": {
+    "ja": "スカウト可能なら配合しない",
+    "en": "Hide scoutable monster's parents"
+  },
+  "scoutable_selection_suffix": {
+    "ja": "ランク以上は配合する",
+    "en": ""
   }
 }
