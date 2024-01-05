@@ -9,6 +9,18 @@ pub struct SearchCondition {
     pub monster_id: Option<usize>,
 }
 
+impl SearchCondition {
+    pub fn new() -> Self {
+        Self { monster_id: None }
+    }
+
+    pub fn with_monster_id(&self, monster_id: Option<usize>) -> Self {
+        let mut cond = self.clone();
+        cond.monster_id = monster_id;
+        cond
+    }
+}
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterSpec {
     pub family: usize,

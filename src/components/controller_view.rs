@@ -20,6 +20,7 @@ pub struct ControllerViewProps {
 #[function_component(ControllerView)]
 pub fn controller_view(props: &ControllerViewProps) -> Html {
     let lang = get_lang_data();
+    let id_condition = props.condition.clone();
     let handle_id_change = props.onchange.clone();
 
     html! {
@@ -28,9 +29,7 @@ pub fn controller_view(props: &ControllerViewProps) -> Html {
                 monster_lut={props.monster_lut.clone()}
                 onchange={
                     Callback::from(move |id: Option<usize>| {
-                        handle_id_change.emit(SearchCondition {
-                            monster_id: id,
-                        });
+                        handle_id_change.emit(id_condition.with_monster_id(id));
                     })
                 }
             />

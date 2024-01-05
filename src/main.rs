@@ -32,7 +32,7 @@ impl Component for App {
         let monster_lut = data::get_monster_data();
 
         App {
-            search_condition: recipe::SearchCondition { monster_id: None },
+            search_condition: recipe::SearchCondition::new(),
             tree_builder: recipe::MonsterTreeBuilder::new(monster_lut.clone()),
             monster_lut: Rc::new(monster_lut),
         }
