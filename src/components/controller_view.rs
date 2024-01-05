@@ -5,20 +5,16 @@ use yew::prelude::*;
 use yew::{Callback, Properties};
 
 use super::super::data::{get_lang_data, Monster};
+use super::super::recipe::SearchCondition;
 use super::cards::Card;
 use super::monster_input::MonsterInput;
 
-#[derive(Clone, PartialEq)]
-pub struct SearchConditions {
-    pub monster_id: Option<usize>,
-}
-
 #[derive(Properties, PartialEq)]
 pub struct ControllerViewProps {
-    pub condition: SearchConditions,
+    pub condition: SearchCondition,
     pub monster_lut: Rc<HashMap<usize, Monster>>,
 
-    pub onchange: Callback<SearchConditions>,
+    pub onchange: Callback<SearchCondition>,
 }
 
 #[function_component(ControllerView)]
@@ -32,7 +28,7 @@ pub fn controller_view(props: &ControllerViewProps) -> Html {
                 monster_lut={props.monster_lut.clone()}
                 onchange={
                     Callback::from(move |id: Option<usize>| {
-                        handle_id_change.emit(SearchConditions {
+                        handle_id_change.emit(SearchCondition {
                             monster_id: id,
                         });
                     })

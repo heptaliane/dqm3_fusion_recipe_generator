@@ -14,11 +14,11 @@ mod recipe;
 pub struct AppProps;
 
 pub enum AppMessage {
-    ChangeSearchCondition(components::controller_view::SearchConditions),
+    ChangeSearchCondition(recipe::SearchCondition),
 }
 
 pub struct App {
-    search_condition: components::controller_view::SearchConditions,
+    search_condition: recipe::SearchCondition,
 
     tree_builder: recipe::MonsterTreeBuilder,
     monster_lut: Rc<HashMap<usize, data::Monster>>,
@@ -32,7 +32,7 @@ impl Component for App {
         let monster_lut = data::get_monster_data();
 
         App {
-            search_condition: components::controller_view::SearchConditions { monster_id: None },
+            search_condition: recipe::SearchCondition { monster_id: None },
             tree_builder: recipe::MonsterTreeBuilder::new(monster_lut.clone()),
             monster_lut: Rc::new(monster_lut),
         }

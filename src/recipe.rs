@@ -4,6 +4,11 @@ use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
 use std::rc::Rc;
 
+#[derive(Clone, PartialEq)]
+pub struct SearchCondition {
+    pub monster_id: Option<usize>,
+}
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct MonsterSpec {
     pub family: usize,
